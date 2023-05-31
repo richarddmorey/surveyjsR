@@ -14,13 +14,12 @@ surveyjs <- function(survey, width = NULL, height = NULL, elementId = NULL) {
     data = list()
   )
 
-
   dependencies = list(
     jquerylib::jquery_core(3),
     htmltools::htmlDependency(
       name = "surveyjs",
       version = "1.9.90",
-      package = "surveyjs",
+      package = "surveyjsR",
       src = "htmlwidgets/lib/surveyjs",
       script = c(
         "js/survey-jquery-1.9.90.min.js",
@@ -45,7 +44,7 @@ surveyjs <- function(survey, width = NULL, height = NULL, elementId = NULL) {
     x,
     width = width,
     height = height,
-    package = 'surveyjs',
+    package = 'surveyjsR',
     elementId = elementId,
     dependencies = dependencies
   )
@@ -69,7 +68,7 @@ surveyjs <- function(survey, width = NULL, height = NULL, elementId = NULL) {
 #'
 #' @export
 surveyjsOutput <- function(outputId, width = '100%', height = '400px'){
-  htmlwidgets::shinyWidgetOutput(outputId, 'surveyjs', width, height, package = 'surveyjs')
+  htmlwidgets::shinyWidgetOutput(outputId, 'surveyjs', width, height, package = 'surveyjsR')
 }
 
 #' @rdname surveyjs-shiny

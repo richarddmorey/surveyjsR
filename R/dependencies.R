@@ -2,7 +2,7 @@
 quilljs_dependency = htmltools::htmlDependency(
   name = "quilljs",
   version = "1.3.6",
-  package = "surveyjs",
+  package = "surveyjsR",
   src = "htmlwidgets/lib/quilljs",
   script = c(
     "js/quill.js"
@@ -16,7 +16,7 @@ quilljs_dependency = htmltools::htmlDependency(
 summernote_dependency = htmltools::htmlDependency(
   name = "summernote",
   version = "0.8.18",
-  package = "surveyjs",
+  package = "surveyjsR",
   src = "htmlwidgets/lib/summernote",
   script = c(
     "js/summernote-lite.min.js"
