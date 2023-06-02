@@ -1,0 +1,74 @@
+---
+title: "Rendered Rmarkdown within a surveyjs question"
+author: "Richard D. Morey"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+# Function to do the rendering. Returns the HTML as a character vector.
+renderChild = function(child_rmd, td = tempdir(), ...){
+  tf = tempfile(tmpdir = td, fileext = '.html')
+  rmarkdown::render(
+    child_rmd, 
+    output_format = 'html_fragment',
+    output_file = tf, quiet=TRUE, ...
+  ) |>
+  readLines() |>
+  paste(collapse='\n') -> res
+
+  unlink(tf)
+  return(res)
+}
+
+```
+
+```{r include=FALSE}
+# Render and read in html for use in the survey
+res1 = renderChild('children/child1.Rmd')
+res2 = renderChild('children/child2.Rmd')
+```
+
+```{r}
+
+s = surveyjsR::survey$new(
+  settings = list(
+    title = 'Hi there!',
+    completedHtml = "<h3>Thank you for your feedback.</h3>")
+)
+
+s$add(name = 'q1', type = 'html', html = res1)
+s$add(name = 'q2', type = 'text', title = 'What is the sum of all integers from 1 to 10?', correctAnswer="55")
+s$add(name = 'q3', type = 'html', page = Inf, html = res2)
+
+s$gather_to_panel(c('q1','q2'),'a') # To visually join the two questions
+
+
+surveyjsR::surveyjs(s)
+
+```
+
+```{js echo=FALSE}
+/*
+  In order to typeset the MathJax on subsequent pages, we need to listen
+  for the surveyjs 'onAfterRenderPage' event, and then render the MathJax 
+  on the page. Otherwise you'll just see the raw LaTeX.
+*/
+
+document.querySelector("body")
+  .addEventListener("surveyDefined", 
+  (e) => {
+  
+    // For showing how to set a surveyjs event
+    const s = e.detail.survey;
+    
+    // Rerender MathJax
+    s.onAfterRenderPage.add((_, options) => {
+      MathJax.Hub.Queue(["Typeset",MathJax.Hub,options.htmlElement]);
+    });
+  }
+);
+
+```
