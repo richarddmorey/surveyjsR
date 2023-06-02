@@ -47,5 +47,13 @@ The widget is printed from the survey object with `surveyjsR::surveyjs()`.
 
 The package includes the `quilledit` and `summeredit` question types, which create [quilljs](https://quilljs.com/) and [summernote](https://summernote.org/) open response editors, respectively.
 
+## Example Rmd
+
+See [the basic example](https://github.com/richarddmorey/surveyjsR/blob/main/inst/examples/basic_example.Rmd). This shows how to do several things:
+
+1. Create a survey and add questions
+2. Setting necessary event listeners (e.g, for sending survey data somewhere). You could also use this for checking answers, displaying messages, etc.
+3. Accessing and changing the survey data (in this case, by allowing downloading and uploading of the data as a JSON file).
+
 
 
