@@ -1,0 +1,162 @@
+---
+title: "surveyjs in Rmarkdown example"
+author: "Richard D. Morey"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{js}
+
+// These utility functions show how to extract, save, and load data.
+
+function downloadText(txt){
+  exportName = 'response'
+  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(txt);
+  const downloadAnchorNode = document.createElement('a');
+  downloadAnchorNode.setAttribute("href",     dataStr);
+  downloadAnchorNode.setAttribute("download", exportName + ".json");
+  document.body.appendChild(downloadAnchorNode); // required for Firefox
+  downloadAnchorNode.click();
+  downloadAnchorNode.remove();
+}
+
+function dropHandler(ev, s) {
+  // Prevent default behavior (Prevent file from being opened)
+  
+  function extractFileData(f){
+    f.text()
+    .then(txt => {
+      s.data = JSON.parse(txt);
+    });
+  }
+  
+  if (ev.dataTransfer.items) {
+    // Use DataTransferItemList interface to access the file(s)
+    [...ev.dataTransfer.items].forEach((item, i) => {
+      // If dropped items aren't files, reject them
+      if (item.kind === "file") {
+        const file = item.getAsFile();
+        extractFileData(file);
+      }
+    });
+  } else {
+    // Use DataTransfer interface to access the file(s)
+    [...ev.dataTransfer.files].forEach((file, i) => {
+      extractFileData(file);
+    });
+  }
+}
+
+```
+
+
+```{css}
+
+#drop_zone {
+  border: 2px dashed #bbb;
+  -webkit-border-radius: 5px;
+  border-radius: 5px;
+  box-shadow: 0 3px 10px rgb(0 0 0 / 0.2);
+  padding: 10px;
+  margin: 10px;
+  text-align: center;
+  font: 21pt;
+  color: #bbb;
+  height: 3em;
+}
+
+#drop_zone:hover {
+  cursor: pointer;
+  
+  /* Start the shake animation and make the animation last for 0.5 seconds */
+  animation: shake 0.5s;
+
+  /* When the animation is finished, start again */
+  animation-iteration-count: infinite; 
+}
+
+@keyframes shake {
+  0% { transform: translate(1px, 1px) rotate(0deg); }
+  10% { transform: translate(-1px, -2px) rotate(-1deg); }
+  20% { transform: translate(-3px, 0px) rotate(1deg); }
+  30% { transform: translate(3px, 2px) rotate(0deg); }
+  40% { transform: translate(1px, -1px) rotate(1deg); }
+  50% { transform: translate(-1px, 2px) rotate(-1deg); }
+  60% { transform: translate(-3px, 1px) rotate(0deg); }
+  70% { transform: translate(3px, 1px) rotate(-1deg); }
+  80% { transform: translate(-1px, -1px) rotate(1deg); }
+  90% { transform: translate(1px, 2px) rotate(0deg); }
+  100% { transform: translate(1px, -2px) rotate(-1deg); }
+}
+
+```
+
+<!-- a place to click/drag to -->
+<div
+  id="drop_zone"
+  ondragover="(e => e.preventDefault())(event);">
+  <p>Click to download survey JSON; drag JSON file over to upload.</p>
+</div>
+
+
+```{r}
+
+s = surveyjsR::survey$new(
+  settings = list(
+    title = 'Hi there!',
+    completedHtml = "<h3>Thank you for your feedback.</h3>")
+)
+
+s$add(name = 'q1', type = 'text', title = 'What is your name?')
+s$add(name = 'q2', type = 'dropdown', title = 'Pizza toppings?',
+      choices = list(
+        "Olives",
+        "Mozzarella",
+        "Mushrooms",
+        "Red pepper",
+        "Pepperoni",
+        "Shrimps"),
+      correctAnswer = "Mozzarella"
+)
+s$add(name = 'q3', type = 'summeredit', title = "Describe in detail your opinion of pizza")
+
+surveyjsR::surveyjs(s)
+
+```
+
+```{js echo=FALSE}
+/* Listen for whether survey object is defined, then set some events. */
+
+document.querySelector("body")
+  .addEventListener("surveyDefined", 
+  (e) => {
+  
+    // For showing how to set a surveyjs event
+    const s = e.detail.survey;
+    s.onValueChanged.add((_, options) => {
+      console.log(`Response changed in question ${options.name}.`);
+    });
+    
+    // For saving the data as text
+    document.querySelector('#drop_zone')
+      .addEventListener('click', e=>{
+      downloadText(JSON.stringify(s.data))
+      }
+    );
+    
+    // For loading the data from an uploaded text
+    document.querySelector('#drop_zone')
+      .addEventListener('drop', e=>{
+        e.preventDefault();
+        dropHandler(e, s)
+      }
+    );
+  
+  }
+);
+
+```
