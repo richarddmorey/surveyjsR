@@ -10,9 +10,12 @@ HTMLWidgets.widget({
 
     return {
 
-      getData: function(){
+      getObject: function(){
         if(typeof survey !== 'undefined'){
-          return survey.data;
+          return {
+            el: el,
+            survey: survey
+          }
         }
       },
 
@@ -21,6 +24,14 @@ HTMLWidgets.widget({
           if(typeof survey === 'undefined'){
             survey = new Survey.Model(x.model);
             jQuery(el).Survey({ model: survey });
+            const ev = new CustomEvent("surveyDefined", {
+              detail: {
+                el: el,
+                survey: survey
+              }
+            });
+            document.querySelector("body").dispatchEvent(ev);
+
           }else{
             survey.data = x.data
           }
