@@ -11,7 +11,7 @@
 #' @importFrom rmarkdown render
 #'
 #' @examples
-sjsR_renderChild = function(child_rmd, td = tempdir(), ...){
+sjsR_renderChild = function(child_rmd, td = tempdir(), envir = parent.frame(), ...){
   tf = tempfile(tmpdir = td, fileext = '.html')
   rmarkdown::render(
     child_rmd,
@@ -20,6 +20,7 @@ sjsR_renderChild = function(child_rmd, td = tempdir(), ...){
         pandoc_args = rmarkdown::pandoc_metadata_arg('title','.')
         ),
     output_file = tf, quiet=TRUE,
+    envir = envir,
     ...
   ) |>
     readLines() |>
