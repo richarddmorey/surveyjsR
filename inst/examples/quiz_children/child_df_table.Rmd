@@ -1,0 +1,5 @@
+
+
+```{r dt_table}
+sjPlot::tab_xtab(con_tab$Age, con_tab$Transportation,show.summary=FALSE,emph.total = TRUE)
+```

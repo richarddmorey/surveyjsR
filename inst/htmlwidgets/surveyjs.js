@@ -23,15 +23,23 @@ HTMLWidgets.widget({
 
           if(typeof survey === 'undefined'){
             survey = new Survey.Model(x.model);
-            jQuery(el).Survey({ model: survey });
             const ev = new CustomEvent("surveyDefined", {
-              detail: {
-                el: el,
-                survey: survey
-              }
-            });
+                detail: {
+                  el: el,
+                  survey: survey
+                  }
+                });
             document.querySelector("body").dispatchEvent(ev);
-
+            survey.onAfterRenderSurvey.add((_,options)=>{
+              const ev = new CustomEvent("surveyReady", {
+                detail: {
+                  el: el,
+                  survey: survey
+                  }
+                });
+              document.querySelector("body").dispatchEvent(ev);
+            });
+            jQuery(el).Survey({ model: survey });
           }else{
             survey.data = x.data
           }

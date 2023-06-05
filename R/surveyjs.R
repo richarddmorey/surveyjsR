@@ -24,7 +24,8 @@ surveyjs <- function(survey, width = NULL, height = NULL, elementId = NULL) {
       script = c(
         "js/survey-jquery-1.9.90.min.js",
         "js/widgets/quill_widget.js",
-        "js/widgets/summer_widget.js"
+        "js/widgets/summer_widget.js",
+        "js/sjsR_utility.js"
       ),
       stylesheet = c(
         "css/defaultV2.min.css"

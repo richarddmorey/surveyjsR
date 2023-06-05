@@ -1,0 +1,23 @@
+
+### Explanation
+
+The correct answer is **`r dft$df`**.
+
+There are `r dft$rows` rows in the table and `r dft$cols` columns in the table. 
+The degrees of freedom are:
+
+\[
+df = (r - 1) \times (c - 1)
+\]
+where $r$ and $c$ are the number of rows and columns, respectively. 
+
+So the degrees of freedom are:
+
+\[
+\begin{eqnarray*}
+df &=& (r - 1) \times (c - 1)\\
+&=& (`r dft$rows` - 1) \times (`r dft$cols` - 1)\\
+&=& `r dft$rows - 1` \times `r dft$cols - 1`\\
+&=& `r dft$df` 
+\end{eqnarray*}
+\]

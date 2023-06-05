@@ -1,0 +1,205 @@
+---
+title: "Creating a quiz with Rmarkdown and surveyjs"
+author: "Richard D. Morey"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+solutions = TRUE
+
+library(dplyr)
+```
+
+```{r}
+
+s = surveyjsR::survey$new(
+  settings = list(
+    title = 'Statistics quiz!',
+    completedHtml = "<h3>You have finished the quiz.</h3>")
+)
+```
+
+```{r}
+
+## Correlation question
+
+possible_correlations = c(-.9,-.5,0,.5,.9)
+true_correlation = sample(possible_correlations, 1)
+
+n = 50
+Sigma = diag(2)
+Sigma[1,2] = Sigma[2,1] = true_correlation
+MASS::mvrnorm(n = n, mu = c(0,0), Sigma = Sigma, empirical = TRUE) |>
+  as.data.frame() |>
+  mutate(
+    x = scale(V1) |> as.vector(),
+    y = scale(V2) |> as.vector()
+  ) |>
+  select(x,y) -> cor_data
+
+s$add(
+  name = 'correlation_plot',
+  type = 'html',
+  html = surveyjsR::sjsR_renderChild('quiz_children/child_correlation_plot.Rmd')
+)
+
+s$add(
+  name = 'correlation_q',
+  type = 'radiogroup',
+  #choicesOrder = 'random',
+  title = 'What is the most plausible Pearson correlation for the scatterplot above?',
+  choices = possible_correlations,
+  enableIf = "{correlation_q} empty",
+  correctAnswer = if(solutions) true_correlation
+  )
+
+s$gather_to_panel(c('correlation_plot','correlation_q'), 'correlation')
+
+```
+
+```{r eval=solutions,include=solutions}
+
+s$add(
+  name = 'correlation_explanation',
+  type = 'html',
+  html = surveyjsR::sjsR_renderChild('quiz_children/child_correlation_explanation.Rmd'),
+  visibleIf = "{correlation_q} notempty"
+)
+
+s$gather_to_panel(c('correlation_plot','correlation_q','correlation_explanation'), 'correlation')
+```
+
+
+```{r}
+
+## Contingency table question
+
+# Sample random df, uniformly over possible df
+expand.grid(rows = 2:5, cols = 2:5) |>
+  mutate(
+    cells = rows * cols,
+    df = (rows-1)*(cols-1),
+    ndf = length(unique(df))
+    ) |>
+  group_by(df) |>
+  mutate(
+    n = n(),
+    p = 1/n * 1/ndf) |>
+  ungroup() |>
+  filter(
+    row_number() == which(as.logical(rmultinom(1,1,p)))
+    ) -> dft
+
+# Create hypothetical contingency table
+n_total = dft$cells * 20
+transp_methods = c('Car','Bus','Train','Bicycle','Walk')
+
+data.frame(
+  Age=runif(n_total, 18, 70),
+  Transportation=factor(sample(transp_methods[1:dft$cols], n_total, replace=TRUE), levels = transp_methods[1:dft$cols])
+) |>
+  mutate(
+    Age = cut(Age, breaks = seq(18,70,length.out = dft$rows+1)|>round())
+  ) -> con_tab
+
+s$add(
+  name = 'df_table',
+  type = 'html',
+  html = surveyjsR::sjsR_renderChild('quiz_children/child_df_table.Rmd')
+)
+
+s$add(
+  name = 'df_q', 
+  type = 'text',
+  title = 'Consider the contingency table above. If we were to perform a Chi-squared test of independence on this table, what would the appropriate degrees of freedom for the test be?',
+  enableIf = "{df_q} empty",
+  correctAnswer = if(solutions) dft$df
+  )
+
+s$gather_to_panel(c('df_table','df_q'), 'df')
+
+```
+
+```{r eval=solutions,include=solutions}
+
+s$add(
+  name = 'df_explanation',
+  type = 'html',
+  html = surveyjsR::sjsR_renderChild('quiz_children/child_df_explanation.Rmd'),
+  visibleIf = "{df_q} notempty"
+)
+
+s$gather_to_panel(c('df_table','df_q','df_explanation'), 'df')
+```
+
+```{r}
+## Demonstrate regular expression matching - 
+## Matching a name in all its possible variations is complicated
+
+s$add(
+  name = 'fisher_q',
+  type = 'text', 
+  title = 'For whom is the \\(F\\) statistic in ANOVA named?',
+  enableIf = "{fisher_q} empty",
+  correctAnswer=list(
+    type='string', 
+    regex = list(
+      regex = paste(sep = '|',
+        '^Fisher$',
+        '^R\\.{0,1}\\s* Fisher$',
+        '^R\\.{0,1}\\s*A\\.{0,1}\\s* Fisher$',
+        '^Ronald\\s* Fisher$',
+        '^Ronald\\s* Aylmer\\s* Fisher$',
+        '^Ronald \\s*A\\.{0,1} \\s*Fisher$'
+        )
+      )
+    )
+  )
+```
+
+```{r eval=solutions,include=solutions}
+
+s$add(
+  name = 'fisher_explanation',
+  type = 'html',
+  html = "<h3>Explanation</h3>The \\(F\\) statitic in ANOVA is named for <a href='https://en.wikipedia.org/wiki/Ronald_Fisher' target='_blank'>Ronald Fisher</a>.",
+  visibleIf = "{fisher_q} notempty"
+)
+
+s$gather_to_panel(c('fisher_q','fisher_explanation'), 'fisher')
+```
+
+
+```{r}
+# Print the widget
+surveyjsR::surveyjs(s)
+```
+
+```{js echo=FALSE}
+
+document.querySelector("body")
+  .addEventListener("surveyDefined", 
+  (e) => {
+    const s = e.detail.survey;
+    const el = e.detail.el;
+    
+    s.onValueChanged.add((_, options) => {
+      sjsR_changeTitleCorrect(
+        options.question
+      )
+    });
+    
+    // Rerender MathJax
+    s.onAfterRenderQuestion.add((_, options) => {
+      if(typeof MathJax !== 'undefined'){
+        MathJax.Hub.Queue(["Typeset",MathJax.Hub,options.htmlElement]);
+      }
+    });
+  }
+);
+
+
+```

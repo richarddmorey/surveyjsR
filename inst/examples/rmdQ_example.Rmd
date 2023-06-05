@@ -8,27 +8,12 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
 
-# Function to do the rendering. Returns the HTML as a character vector.
-renderChild = function(child_rmd, td = tempdir(), ...){
-  tf = tempfile(tmpdir = td, fileext = '.html')
-  rmarkdown::render(
-    child_rmd, 
-    output_format = 'html_fragment',
-    output_file = tf, quiet=TRUE, ...
-  ) |>
-  readLines() |>
-  paste(collapse='\n') -> res
-
-  unlink(tf)
-  return(res)
-}
-
 ```
 
 ```{r include=FALSE}
 # Render and read in html for use in the survey
-res1 = renderChild('children/child1.Rmd')
-res2 = renderChild('children/child2.Rmd')
+res1 = surveyjsR::sjsR_renderChild('rmdQ_children/child1.Rmd')
+res2 = surveyjsR::sjsR_renderChild('rmdQ_children/child2.Rmd')
 ```
 
 ```{r}
@@ -65,7 +50,7 @@ document.querySelector("body")
     const s = e.detail.survey;
     
     // Rerender MathJax
-    s.onAfterRenderPage.add((_, options) => {
+    s.onAfterRenderQuestion.add((_, options) => {
       MathJax.Hub.Queue(["Typeset",MathJax.Hub,options.htmlElement]);
     });
   }

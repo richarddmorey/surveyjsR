@@ -1,0 +1,74 @@
+
+### Explanation
+
+The correct answer is **`r true_correlation`**.
+
+To help see why, see the figure below. The mean of $x$ and $y$ are shown as vertical and horizontal dotted lines, respectively. The number of points in each quadrant are shown in the corners of the graph. The red dashed line shows the line of "best fit" to the data.
+
+
+```{r corr_expl,fig.width=5,fig.height=5}
+par(mar=rep(.1,4))
+plot(cor_data, axes=FALSE, ylab='',xlab = '', pch = 19, col = rgb(0,0,1,.4), asp=TRUE,
+     ylim = range(as.matrix(cor_data)), xlim = range(as.matrix(cor_data)))
+abline(a = 0, b = true_correlation, lty = 2, col = 'red', lwd = 2)
+abline(v=0,h=0,lty=3)
+box()
+
+# Count numbers of points in quadrants
+
+cor_data |>
+  mutate(
+    quad = 2*(y>0)+(x>0),
+  ) |>
+  group_by(quad) |>
+  summarise(
+    n = n(),
+    sgn_x = first(sign(x)),
+    sgn_y = first(sign(y))
+    ) |>
+  mutate(
+    loc_x = case_when(
+      sgn_x < 0 ~ par()$usr[1],
+      TRUE ~ par()$usr[2]
+    ),
+    loc_y = case_when(
+      sgn_y < 0 ~ par()$usr[3],
+      TRUE ~ par()$usr[4]
+    ),
+    hjust = ifelse(sgn_x>0,1.1,-0.1),
+    vjust = ifelse(sgn_y>0,1.1,-0.1)
+  ) -> quad_counts
+
+for(i in 1:4){
+  text(
+    quad_counts$n[i], 
+    x = quad_counts$loc_x[i],
+    y = quad_counts$loc_y[i],
+    adj = c(quad_counts$hjust[i],quad_counts$vjust[i]),
+    cex = 3,
+    col = 'blue'
+  )
+}
+
+```
+
+```{r ce1,eval=true_correlation==0}
+htmltools::tags$p("The points don't tend to go up or down with \\(x\\), so the best-fit line is flat. There are roughly equal numbers in each quadrant, indicating that large \\(x\\) values don't tend to be paired with either large, or small, \\(y\\) values. Hence, the correlation is about 0.")
+```
+
+
+```{r ce3,eval=true_correlation==.9}
+htmltools::tags$p("The points tend to go up with \\(x\\), so the best-fit line is increasing and the correlation must be positive. There are many more points in the upper-right and lower-left quadrant, indicating that large \\(x\\) values tend to be paired with large \\(y\\) values, and small \\(x\\) values tend to be paired with small \\(y\\) values. Because there are many more points in the upper-right and lower-left quadrant than the others, the correlation is strong; hence, 0.9 is the best guess.")
+```
+
+```{r ce4,eval=true_correlation==-.9}
+htmltools::tags$p("The points tend to go down with \\(x\\), so the best-fit line is decreasing and the correlation must be negative. There are many more points in the lower-right and upper-left quadrant, indicating that large \\(x\\) values tend to be paired with small \\(y\\) values, and small \\(x\\) values tend to be paired with large \\(y\\) values. Because there are many more points in the upper-left and lower-right quadrant than the others, the correlation is strong; hence, -0.9 is the best guess.")
+```
+
+```{r ce5,eval=true_correlation==.5}
+htmltools::tags$p("The points tend to go up with \\(x\\), so the best-fit line is increasing and the correlation must be positive. There are a few more points in the upper-right and lower-left quadrant, indicating that large \\(x\\) values tend to be paired with large \\(y\\) values, and small \\(x\\) values tend to be paired with small \\(y\\) values; however, there aren't so many more points in these quadrants. Hence, the relationship is only moderate, and 0.5 is the best guess.")
+```
+
+```{r ce6,eval=true_correlation==-.5}
+htmltools::tags$p("The points tend to go down with \\(x\\), so the best-fit line is decreasing and the correlation must be negative. There are a few more points in the upper-left and lower-right quadrant, indicating that large \\(x\\) values tend to be paired with small \\(y\\) values, and small \\(x\\) values tend to be paired with large \\(y\\) values; however, there aren't so many more points in these quadrants. Hence, the relationship is only moderate, and -0.5 is the best guess.")
+```

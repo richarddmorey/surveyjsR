@@ -15,4 +15,8 @@ Imports:
     htmlwidgets,
     htmltools,
     jquerylib,
-    R6
+    R6,
+    rmarkdown
+Suggests: 
+    MASS,
+    sjPlot

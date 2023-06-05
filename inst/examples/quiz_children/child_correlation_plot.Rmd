@@ -1,0 +1,7 @@
+
+```{r corr_plot,fig.width=5,fig.height=5}
+par(mar=rep(.1,4))
+plot(cor_data, axes=FALSE, ylab='',xlab = '', pch = 19, col = rgb(0,0,1,.4), asp=TRUE,
+     ylim = range(as.matrix(cor_data)), xlim = range(as.matrix(cor_data)))
+box()
+```
